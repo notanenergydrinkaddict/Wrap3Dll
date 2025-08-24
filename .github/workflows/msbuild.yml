@@ -1,0 +1,42 @@
+name: MSBuild
+
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@main
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Generate CMake files
+        run: cmake --preset vs2022
+      - name: Build
+        run: cmake --build out/build/vs2022 --config RelWithDebInfo
+      - name: Zip
+        run: |
+          7z a -mx9 ${{ github.workspace }}/Wrap3Dll.zip `
+          ${{ github.workspace }}/out/build/vs2022/bin/Wrap3Dll/Wrap3Dll.asi `
+          ${{ github.workspace }}/.github/README.md `
+          ${{ github.workspace }}/LICENSE
+      - name: Upload
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $build = "n-${{ github.run_number }}.a-${{ github.run_attempt }}"
+          gh release create build_$build ${{ github.workspace }}/Wrap3Dll.zip --target ${{ GITHUB.SHA }} -t "Build $build"
