@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.15)
+
+set(CMAKE_CONFIGURATION_TYPES "Debug;RelWithDebInfo" CACHE STRING "" FORCE)
+
+set(PROJ_NAME Wrap3Dll)
+
+ADD_DEFINITIONS(-DPROJECT_NAME="${PROJ_NAME}")
+ADD_DEFINITIONS(-DUNICODE)
+ADD_DEFINITIONS(-D_UNICODE)
+ADD_DEFINITIONS(-D_USRDLL)
+
+project(${PROJ_NAME} LANGUAGES CXX)
+
+add_library(${PROJ_NAME} SHARED
+    Wrap3Dll/src/dllmain.cpp
+    Wrap3Dll/src/WrapMain.cpp
+    Wrap3Dll/src/Memory.cpp
+    Wrap3Dll/src/Memory.hpp
+)
+
+target_compile_definitions(${PROJ_NAME} PRIVATE)
+
+set_target_properties(${PROJ_NAME} PROPERTIES
+    WINDOWS_EXPORT_ALL_SYMBOLS YES
+    SUFFIX ".asi"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}"
+    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}"
+)
